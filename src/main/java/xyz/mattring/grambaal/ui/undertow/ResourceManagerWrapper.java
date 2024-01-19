@@ -2,20 +2,27 @@ package xyz.mattring.grambaal.ui.undertow;
 
 import io.undertow.server.handlers.resource.Resource;
 import io.undertow.server.handlers.resource.ResourceChangeListener;
+import io.undertow.server.handlers.resource.ResourceManager;
 
 import java.io.IOException;
+import java.util.function.UnaryOperator;
 
-public class WrapperResourceManager implements io.undertow.server.handlers.resource.ResourceManager {
-    private final io.undertow.server.handlers.resource.ResourceManager delegate;
-    private final 
+/**
+ * Delegates to an inner ResourceManager, optionally applying a UnaryOperator to the Resource returned by the delegate.
+ */
+public class ResourceManagerWrapper implements ResourceManager {
+    private final ResourceManager delegate;
+    private final UnaryOperator<Resource> optionalResourceMunger;
 
-    public WrapperResourceManager(io.undertow.server.handlers.resource.ResourceManager delegate) {
+    public ResourceManagerWrapper(ResourceManager delegate, UnaryOperator<Resource> optionalResourceMunger) {
         this.delegate = delegate;
+        this.optionalResourceMunger = optionalResourceMunger;
     }
 
     @Override
     public Resource getResource(String s) throws IOException {
-        return delegate.getResource(s);
+        final Resource resource = delegate.getResource(s);
+        return optionalResourceMunger != null ? optionalResourceMunger.apply(resource) : resource;
     }
 
     @Override
