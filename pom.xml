@@ -33,9 +33,9 @@
             <version>2.3.10.Final</version>
         </dependency>
         <dependency>
-            <groupId>gg.jte</groupId>
-            <artifactId>jte</artifactId>
-            <version>3.1.6</version>
+            <groupId>org.watertemplate</groupId>
+            <artifactId>watertemplate-engine</artifactId>
+            <version>1.2.2</version>
         </dependency>
         <dependency>
             <groupId>org.junit.jupiter</groupId>

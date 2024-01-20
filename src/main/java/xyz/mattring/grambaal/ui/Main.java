@@ -8,11 +8,10 @@ import io.undertow.server.handlers.PathHandler;
 import io.undertow.server.handlers.resource.ClassPathResourceManager;
 import io.undertow.server.handlers.resource.ResourceHandler;
 import io.undertow.util.Headers;
-import xyz.mattring.grambaal.ui.undertow.ResourceManagerWrapper;
-import xyz.mattring.grambaal.ui.undertow.ResourceWrapper;
-import xyz.mattring.grambaal.ui.undertow.SenderWrapper;
+import org.watertemplate.Template;
+import xyz.mattring.grambaal.ui.template.infra.TemplateProcessingHandler;
+import xyz.mattring.grambaal.ui.template.water.HappyPath;
 
-import java.nio.ByteBuffer;
 import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.util.List;
@@ -21,7 +20,7 @@ import java.util.Optional;
 import java.util.UUID;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
-import java.util.function.UnaryOperator;
+import java.util.function.BiFunction;
 
 public class Main implements Runnable {
 
@@ -122,46 +121,44 @@ public class Main implements Runnable {
 
     @Override
     public void run() {
+
         final ResourceHandler staticFileHandler = new ResourceHandler(
                 new ClassPathResourceManager(Main.class.getClassLoader()));
-        final HttpHandler routingHandler = new RoutingHandler()
+
+        final TemplateProcessingHandler<Template> templateHandler = getTemplateProcessingHandler();
+
+        final HttpHandler otherHandler = new RoutingHandler()
                 .get("/hello", this::helloHandler)
                 .get("/goodbye", this::goodbyeHandler)
                 .get("/gsession", this::supplyGptConvoForm)
                 .post("/gsession", this::processGptConvoChunk)
                 .setFallbackHandler(Main::notFoundHandler);
 
-        final UnaryOperator<ByteBuffer> templateProcessor = byteBuffer -> {
-            // currently just reverses a string, which is a placeholder for the real template processing
-            // TODO: actually process the template
-            String orig = new String(byteBuffer.array()).trim();
-            String reversed = new StringBuilder(orig).reverse().toString();
-            System.out.println("orig: " + orig);
-            System.out.println("reversed: " + reversed);
-            return ByteBuffer.wrap(reversed.getBytes());
-        };
-        final ResourceHandler templateHandler = new ResourceHandler(
-                new ResourceManagerWrapper(
-                        new ClassPathResourceManager(Main.class.getClassLoader()),
-                        resource -> new ResourceWrapper(
-                                resource,
-                                sender -> new SenderWrapper(
-                                        sender,
-                                        templateProcessor
-                                )
-                        )
-                )
-        );
-
         final PathHandler compositeHandler = new PathHandler()
                 .addPrefixPath("/s", staticFileHandler)
-                .addPrefixPath("/d", templateHandler)
-                .addPrefixPath("/x", routingHandler);
+                .addPrefixPath("/t", templateHandler)
+                .addPrefixPath("/o", otherHandler);
+
         Undertow server = Undertow.builder()
                 .addHttpListener(port, "localhost")
                 .setHandler(compositeHandler)
                 .build();
         server.start();
+    }
+
+    private static TemplateProcessingHandler<Template> getTemplateProcessingHandler() {
+        final BiFunction<Template, HttpServerExchange, String> waterTemplateRenderer = (template, exchange) -> {
+            return template.render();
+        };
+        final TemplateProcessingHandler<Template> templateHandler = new TemplateProcessingHandler<>(
+                waterTemplateRenderer,
+                Main::notFoundHandler
+        );
+        templateHandler.addTemplateSpec(
+                "HappyPath",
+                "unused",
+                () -> new HappyPath("Hello, World!"));
+        return templateHandler;
     }
 
     public static void main(String[] args) {
