@@ -8,4 +8,5 @@
 - Instead, I've added a general use `TemplateProcessingHandler`.
 - I'm specifically trying something called [Water Template Engine](https://github.com/tiagobento/watertemplate-engine)
 - I plan to use [htmx](https://htmx.org/) for any client-side interactivity.
-- Yes, there's some random login stuff in here. That will eventually move or get replaced with COTS auth.
+- Yes, there's some random login stuff in here (UsrMgt). That will eventually move or get replaced with COTS auth.
+- Yes, I know I'm silly for not using a batteries-included framework like Spring Boot or Quarkus, but I'm 'learnding' here!

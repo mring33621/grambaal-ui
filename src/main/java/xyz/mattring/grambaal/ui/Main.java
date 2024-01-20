@@ -5,47 +5,22 @@ import io.undertow.server.HttpHandler;
 import io.undertow.server.HttpServerExchange;
 import io.undertow.server.RoutingHandler;
 import io.undertow.server.handlers.PathHandler;
+import io.undertow.server.handlers.form.FormData;
+import io.undertow.server.handlers.form.FormDataParser;
+import io.undertow.server.handlers.form.FormParserFactory;
 import io.undertow.server.handlers.resource.ClassPathResourceManager;
 import io.undertow.server.handlers.resource.ResourceHandler;
 import io.undertow.util.Headers;
+import io.undertow.util.StatusCodes;
 import org.watertemplate.Template;
 import xyz.mattring.grambaal.ui.template.infra.TemplateProcessingHandler;
 import xyz.mattring.grambaal.ui.template.water.HappyPath;
+import xyz.mattring.grambaal.ui.users.UsrMgt;
 
-import java.nio.file.Files;
-import java.nio.file.Paths;
-import java.util.List;
-import java.util.Map;
 import java.util.Optional;
-import java.util.UUID;
-import java.util.concurrent.Executors;
-import java.util.concurrent.ScheduledExecutorService;
 import java.util.function.BiFunction;
 
 public class Main implements Runnable {
-
-    static final String PASSWORD_FILE = System.getProperty("user.home") + "/gu.txt";
-    static final int FIVE_MINUTES = 5 * 60 * 1000;
-
-    static boolean isExpired(long millistamp, long currentTimeMillis) {
-        return (millistamp + FIVE_MINUTES) < currentTimeMillis;
-    }
-
-    static String generateLoginToken() {
-        return UUID.randomUUID().toString();
-    }
-
-    static String readLastLineFromFile(String filePath) {
-        try {
-            List<String> lines = Files.readAllLines(Paths.get(filePath));
-            if (!lines.isEmpty()) {
-                return lines.get(lines.size() - 1).trim();
-            }
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
-        return null;
-    }
 
     public static void notFoundHandler(HttpServerExchange exchange) {
         exchange.setStatusCode(404);
@@ -53,40 +28,20 @@ public class Main implements Runnable {
         exchange.getResponseSender().send("Page Not Found");
     }
 
+    void signalTempRedirect(HttpServerExchange exchange, String newLocation) {
+        exchange.setStatusCode(StatusCodes.FOUND);
+        exchange.getResponseHeaders().put(Headers.LOCATION, newLocation);
+        exchange.endExchange();
+    }
+
     private final int port;
-    private final Map<String, Long> logins;
+    private UsrMgt usrMgt;
+    private final FormParserFactory formParserFactory;
 
     public Main(int port) {
         this.port = port;
-        this.logins = new java.util.concurrent.ConcurrentHashMap<>();
-        final ScheduledExecutorService executorService = Executors.newSingleThreadScheduledExecutor();
-        executorService.scheduleAtFixedRate(
-                this::removeExpiredLogins,
-                1, 1, java.util.concurrent.TimeUnit.MINUTES);
-        Runtime.getRuntime().addShutdownHook(new Thread(executorService::shutdown));
-    }
-
-    void removeExpiredLogins() {
-        logins.entrySet().removeIf(e -> isExpired(e.getValue(), System.currentTimeMillis()));
-    }
-
-    Optional<String> tryLogin(final String pwdOrToken) {
-        // check token
-        final Long millistamp = logins.get(pwdOrToken);
-        if (millistamp != null) {
-            // token was good
-            return Optional.of(pwdOrToken);
-        }
-        // check password
-        final String lastLine = readLastLineFromFile(PASSWORD_FILE);
-        if (pwdOrToken.equals(lastLine)) {
-            // password was good
-            final String token = generateLoginToken();
-            logins.put(token, System.currentTimeMillis());
-            return Optional.of(token);
-        }
-        // no good
-        return Optional.empty();
+        this.usrMgt = new UsrMgt("grambaal-ui");
+        this.formParserFactory = FormParserFactory.builder().withDefaultCharset("UTF-8").build();
     }
 
     public void helloHandler(HttpServerExchange exchange) {
@@ -119,6 +74,26 @@ public class Main implements Runnable {
         exchange.getResponseSender().send("I have processed your GPT Convo Chunk!");
     }
 
+    public void tryLoginHandler(HttpServerExchange exchange) {
+        try (FormDataParser parser = formParserFactory.createParser(exchange)) {
+            parser.parse(exch -> handleLoginForm(exchange));
+        } catch (Exception ex) {
+            ex.printStackTrace();
+        }
+    }
+
+    void handleLoginForm(HttpServerExchange exchange) {
+        FormData data = exchange.getAttachment(FormDataParser.FORM_DATA);
+        String username = data.getFirst("username").getValue();
+        String password = data.getFirst("pwd").getValue();
+        Optional<String> token = usrMgt.tryLogin(username + "|" + password);
+        String newLocation = "/o/goodbye";
+        if (token.isPresent()) {
+            newLocation = "/o/hello";
+        }
+        signalTempRedirect(exchange, newLocation);
+    }
+
     @Override
     public void run() {
 
@@ -128,13 +103,19 @@ public class Main implements Runnable {
         final TemplateProcessingHandler<Template> templateHandler = getTemplateProcessingHandler();
 
         final HttpHandler otherHandler = new RoutingHandler()
+                .post("/trylogin", this::tryLoginHandler)
                 .get("/hello", this::helloHandler)
                 .get("/goodbye", this::goodbyeHandler)
                 .get("/gsession", this::supplyGptConvoForm)
                 .post("/gsession", this::processGptConvoChunk)
                 .setFallbackHandler(Main::notFoundHandler);
 
+        final HttpHandler welcomeHandler = exch -> {
+            signalTempRedirect(exch, "/s/pages/login.html");
+        };
+
         final PathHandler compositeHandler = new PathHandler()
+                .addExactPath("/", welcomeHandler)
                 .addPrefixPath("/s", staticFileHandler)
                 .addPrefixPath("/t", templateHandler)
                 .addPrefixPath("/o", otherHandler);
@@ -162,12 +143,12 @@ public class Main implements Runnable {
     }
 
     public static void main(String[] args) {
-        // die if no password file
-        if (readLastLineFromFile(PASSWORD_FILE) == null) {
-            System.err.println("No password file found. Exiting.");
+        final int port = Integer.parseInt(args[0]);
+        final Main main = new Main(port);
+        if (!main.usrMgt.isProvisioned()) {
+            System.err.println("UsrMgt not ready. Exiting.");
             System.exit(1);
         }
-        int port = Integer.parseInt(args[0]);
-        new Main(port).run();
+        main.run();
     }
 }
