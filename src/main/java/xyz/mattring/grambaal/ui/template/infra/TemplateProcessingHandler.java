@@ -6,7 +6,7 @@ import io.undertow.server.HttpServerExchange;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.function.BiFunction;
-import java.util.function.Supplier;
+import java.util.function.Function;
 
 public class TemplateProcessingHandler<T> implements HttpHandler {
 
@@ -24,8 +24,8 @@ public class TemplateProcessingHandler<T> implements HttpHandler {
         templateMap.put(templateSpec.getTemplateName(), templateSpec);
     }
 
-    public void addTemplateSpec(String templateName, String templatePath, Supplier<T> contextSupplier) {
-        addTemplateSpec(new TemplateSpec<>(templateName, templatePath, contextSupplier));
+    public void addTemplateSpec(String templateName, String templatePath, Function<HttpServerExchange, T> contextFunction) {
+        addTemplateSpec(new TemplateSpec<>(templateName, templatePath, contextFunction));
     }
 
     @Override
@@ -37,7 +37,7 @@ public class TemplateProcessingHandler<T> implements HttpHandler {
             if (templateSpec != null) {
                 final String contentType = templateSpec.getContentType();
                 final String templatePath = templateSpec.getTemplatePath();
-                final T templateContext = templateSpec.getContextSupplier().get();
+                final T templateContext = templateSpec.getContextFunction().apply(httpServerExchange);
                 final String rendered = templateRenderer.apply(templateContext, httpServerExchange);
                 httpServerExchange.getResponseHeaders().put(io.undertow.util.Headers.CONTENT_TYPE, contentType);
                 httpServerExchange.getResponseSender().send(rendered);

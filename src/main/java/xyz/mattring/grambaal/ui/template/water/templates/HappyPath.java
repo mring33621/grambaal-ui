@@ -1,4 +1,4 @@
-package xyz.mattring.grambaal.ui.template.water;
+package xyz.mattring.grambaal.ui.template.water.templates;
 
 import org.watertemplate.Template;
 

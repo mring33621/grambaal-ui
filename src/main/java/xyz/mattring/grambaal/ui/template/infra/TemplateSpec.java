@@ -1,22 +1,24 @@
 package xyz.mattring.grambaal.ui.template.infra;
 
-import java.util.function.Supplier;
+import io.undertow.server.HttpServerExchange;
+
+import java.util.function.Function;
 
 public class TemplateSpec<T> {
     private final String templateName;
     private final String templatePath;
     private final String contentType;
-    private final Supplier<T> contextSupplier;
+    private final Function<HttpServerExchange, T> contextFunction;
 
-    public TemplateSpec(String templateName, String templatePath, String contentType, Supplier<T> contextSupplier) {
+    public TemplateSpec(String templateName, String templatePath, String contentType, Function<HttpServerExchange, T> contextFunction) {
         this.templateName = templateName;
         this.templatePath = templatePath;
         this.contentType = contentType != null ? contentType : "text/html";
-        this.contextSupplier = contextSupplier;
+        this.contextFunction = contextFunction;
     }
 
-    public TemplateSpec(String templateName, String templatePath, Supplier<T> contextSupplier) {
-        this(templateName, templatePath, null, contextSupplier);
+    public TemplateSpec(String templateName, String templatePath, Function<HttpServerExchange, T> contextFunction) {
+        this(templateName, templatePath, null, contextFunction);
     }
 
     public String getTemplateName() {
@@ -31,8 +33,8 @@ public class TemplateSpec<T> {
         return contentType;
     }
 
-    public Supplier<T> getContextSupplier() {
-        return contextSupplier;
+    public Function<HttpServerExchange, T> getContextFunction() {
+        return contextFunction;
     }
 
 }

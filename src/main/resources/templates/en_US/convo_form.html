@@ -1,0 +1,68 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Convo Page</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 20px;
+            background-color: white;
+        }
+
+        .container {
+            margin-bottom: 20px;
+        }
+
+        label {
+            display: block;
+            margin-bottom: 5px;
+        }
+
+        input[type="text"], textarea {
+            width: 100%;
+            padding: 10px;
+            margin-bottom: 20px;
+            font-size: 16px;
+            box-sizing: border-box;
+        }
+
+        textarea[readonly] {
+            background-color: #f3f3f3;
+            height: 300px; /* Adjust as needed */
+        }
+
+        textarea {
+            height: 100px; /* Adjust as needed */
+        }
+
+        input[type="submit"] {
+            padding: 10px 20px;
+            font-size: 16px;
+            cursor: pointer;
+        }
+    </style>
+</head>
+<body>
+<form action="/o/newEntry" method="post">
+    <div class="container">
+        <label for="sessionName">Session Name</label>
+        <input type="text" id="sessionName" name="sessionName" placeholder="Enter session name" value="~sessionName~">
+    </div>
+    <div class="container">
+        <textarea readonly>
+~convoText~
+        </textarea>
+    </div>
+    <div class="container">
+        <label for="newEntry">New Entry</label>
+        <textarea id="newEntry" name="newEntry" placeholder="Type your new entry here">
+~newEntryText~
+        </textarea>
+    </div>
+    <input type="submit" value="Submit">
+</form>
+</body>
+</html>
