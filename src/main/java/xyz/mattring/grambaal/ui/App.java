@@ -156,13 +156,13 @@ public class App {
 
                 if (!isPlaceHolder(newEntry[0]) && !isPlaceHolder(sessionName)) {
                     final File tempFile = File.createTempFile("newUserPrompt", ".txt");
-                    tempFile.deleteOnExit();
                     Files.writeString(tempFile.toPath(), newEntry[0] + "\n");
-                    GPTSessionInteractor gptSessionInteractor = new GPTSessionInteractor(sessionName, tempFile.getAbsolutePath());
+                    GPTSessionInteractor gptSessionInteractor = new GPTSessionInteractor(sessionName, tempFile.getAbsolutePath(), "gpt-4");
                     gptSessionInteractor.run();
                     convoText[0] = GPTSessionInteractor.getConvoTextForSession(sessionName)
                             .orElse("No convo found for: " + sessionName);
                     newEntry[0] = "";
+                    tempFile.delete();
                 }
 
                 final Template template = new ConvoForm(
