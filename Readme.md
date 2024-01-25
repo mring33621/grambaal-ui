@@ -1,5 +1,7 @@
 ## Grambaal UI
 
+![Grambaal UI Example Image](grambaal-ui-example.png "app screenshot")
+
 ### NEW PROJECT -- IN PROGRESS
 
 - This will be the web UI app for [Grambaal](https://github.com/mring33621/the-grambaal).

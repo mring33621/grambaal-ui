@@ -46,10 +46,18 @@
     </style>
 </head>
 <body>
-<form action="/apps/gb/o/newEntry" method="post">
+<form action="/o/newEntry" method="post">
     <div class="container">
         <label for="sessionName">Session Name</label>
         <input type="text" id="sessionName" name="sessionName" placeholder="Enter session name" value="~sessionName~">
+    </div>
+    <div class="container">
+        <label for="selectedModel">Model</label>
+        <select id="selectedModel" name="selectedModel">
+            ~for modelOption in availableModelOptions:
+            ~modelOption~
+            :~
+        </select>
     </div>
     <div class="container">
         <textarea readonly>

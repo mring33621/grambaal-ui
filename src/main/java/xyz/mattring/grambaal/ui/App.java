@@ -15,11 +15,13 @@ import io.undertow.util.Headers;
 import io.undertow.util.StatusCodes;
 import org.watertemplate.Template;
 import xyz.mattring.grambaal.GPTSessionInteractor;
+import xyz.mattring.grambaal.oai.GPTModel;
 import xyz.mattring.grambaal.ui.template.infra.DecisionHandler;
 import xyz.mattring.grambaal.ui.template.infra.TemplateProcessingHandler;
 import xyz.mattring.grambaal.ui.template.water.infra.DynamicTemplateProvider;
 import xyz.mattring.grambaal.ui.template.water.templates.ConvoForm;
 import xyz.mattring.grambaal.ui.template.water.templates.HappyPath;
+import xyz.mattring.grambaal.ui.template.water.templates.UIGPTModelHelper;
 import xyz.mattring.grambaal.ui.users.UsrMgt;
 
 import java.io.File;
@@ -146,6 +148,7 @@ public class App {
             parser.parse(exch -> {
                 final FormData data = exchange.getAttachment(FormDataParser.FORM_DATA);
                 final String sessionName = data.getFirst("sessionName").getValue();
+                final String selectedModelStr = data.getFirst("selectedModel").getValue();
                 final String[] newEntry = {data.getFirst("newEntry").getValue()};
                 final String[] convoText = {""};
 
@@ -165,11 +168,16 @@ public class App {
                     tempFile.delete();
                 }
 
-                final Template template = new ConvoForm(
+                final ConvoForm convoForm = new ConvoForm(
                         sessionName,
+                        null, // will figure this out and then set later
                         convoText[0],
                         newEntry[0]);
-                final String key = dynamicTemplateProvider.putTemplate(template, exchange);
+                Optional<GPTModel> maybeSelectedModel = new UIGPTModelHelper().findModelForModelString(selectedModelStr);
+                GPTModel model = maybeSelectedModel.orElse(GPTModel.GPT_4);
+                System.out.println("Using model: " + model);
+                convoForm.setSelectedModel(model.toString());
+                final String key = dynamicTemplateProvider.putTemplate(convoForm, exchange);
                 signalTempRedirect(exchange, "/t/ConvoForm?" + dynamicTemplateProvider.getQueryParamKey() + "=" + key);
             });
         } catch (Exception ex) {
@@ -194,7 +202,11 @@ public class App {
                 "ConvoForm",
                 "unused",
                 (exch) -> {
-                    final Template def = new ConvoForm("NewSession", "ConvoPlaceholder", "NewEntryPlaceholder");
+                    final Template def = new ConvoForm(
+                            "NewSession",
+                            null,
+                            "ConvoPlaceholder",
+                            "NewEntryPlaceholder");
                     return dynamicTemplateProvider.getTemplateOrDefault(exch, def);
                 });
         return templateHandler;
