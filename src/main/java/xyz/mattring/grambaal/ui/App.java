@@ -40,13 +40,13 @@ public class App {
     public static void notFoundHandler(HttpServerExchange exchange) {
         exchange.setStatusCode(404);
         exchange.getResponseHeaders().put(Headers.CONTENT_TYPE, TEXT_PLAIN);
-        exchange.getResponseSender().send("404: Page Not Found :(");
+        exchange.getResponseSender().send("404: Page Not Found :("); // sad face
     }
 
     public static void doubleSecretProbationHandler(HttpServerExchange exchange) {
         exchange.setStatusCode(404);
         exchange.getResponseHeaders().put(Headers.CONTENT_TYPE, TEXT_PLAIN);
-        exchange.getResponseSender().send("404: Page Not Found :)");
+        exchange.getResponseSender().send("404: Page Not Found :)"); // happy face
     }
 
 
@@ -54,12 +54,14 @@ public class App {
     private final UsrMgt usrMgt;
     private final FormParserFactory formParserFactory;
     private final DynamicTemplateProvider dynamicTemplateProvider;
+    private final UIGPTModelHelper uigptModelHelper;
 
     public App(String basePath) {
         this.basePath = basePath;
         this.usrMgt = new UsrMgt(APP_NAME);
         this.formParserFactory = FormParserFactory.builder().withDefaultCharset("UTF-8").build();
         this.dynamicTemplateProvider = new DynamicTemplateProvider("grambaal-tkey");
+        this.uigptModelHelper = new UIGPTModelHelper();
     }
 
     boolean isProvisioned() {
@@ -94,24 +96,6 @@ public class App {
         exchange.getResponseSender().send("Goodbye World!");
     }
 
-    public void supplyGptConvoForm(HttpServerExchange exchange) {
-        exchange.setStatusCode(200);
-        exchange.getResponseHeaders().put(Headers.CONTENT_TYPE, TEXT_PLAIN);
-        exchange.getResponseSender().send("I'm the GPT Convo Form!");
-    }
-
-    public void login(HttpServerExchange exchange) {
-        exchange.setStatusCode(200);
-        exchange.getResponseHeaders().put(Headers.CONTENT_TYPE, TEXT_PLAIN);
-        exchange.getResponseSender().send("You're trying to log in!");
-    }
-
-    public void processGptConvoChunk(HttpServerExchange exchange) {
-        exchange.setStatusCode(200);
-        exchange.getResponseHeaders().put(Headers.CONTENT_TYPE, TEXT_PLAIN);
-        exchange.getResponseSender().send("I have processed your GPT Convo Chunk!");
-    }
-
     public void tryLoginHandler(HttpServerExchange exchange) {
         try (FormDataParser parser = formParserFactory.createParser(exchange)) {
             parser.parse(exch -> handleLoginForm(exchange));
@@ -143,13 +127,17 @@ public class App {
         return isEmpty(s) || s.startsWith("New");
     }
 
+    public static String trimIfPresent(String s) {
+        return isEmpty(s) ? s : s.trim();
+    }
+
     void processNewEntry(HttpServerExchange exchange) {
         try (FormDataParser parser = formParserFactory.createParser(exchange)) {
             parser.parse(exch -> {
                 final FormData data = exchange.getAttachment(FormDataParser.FORM_DATA);
                 final String sessionName = data.getFirst("sessionName").getValue();
                 final String selectedModelStr = data.getFirst("selectedModel").getValue();
-                final String[] newEntry = {data.getFirst("newEntry").getValue()};
+                final String[] newEntry = {trimIfPresent(data.getFirst("newEntry").getValue())};
                 final String[] convoText = {""};
 
                 if (isPlaceHolder(newEntry[0]) && !isPlaceHolder(sessionName)) {
@@ -160,7 +148,10 @@ public class App {
                 if (!isPlaceHolder(newEntry[0]) && !isPlaceHolder(sessionName)) {
                     final File tempFile = File.createTempFile("newUserPrompt", ".txt");
                     Files.writeString(tempFile.toPath(), newEntry[0] + "\n");
-                    GPTSessionInteractor gptSessionInteractor = new GPTSessionInteractor(sessionName, tempFile.getAbsolutePath(), "gpt-4");
+                    final String selectedModelName = uigptModelHelper.findModelForModelString(selectedModelStr)
+                            .map(GPTModel::getModelName)
+                            .orElse(GPTModel.GPT_4.getModelName());
+                    GPTSessionInteractor gptSessionInteractor = new GPTSessionInteractor(sessionName, tempFile.getAbsolutePath(), selectedModelName);
                     gptSessionInteractor.run();
                     convoText[0] = GPTSessionInteractor.getConvoTextForSession(sessionName)
                             .orElse("No convo found for: " + sessionName);
@@ -173,7 +164,7 @@ public class App {
                         null, // will figure this out and then set later
                         convoText[0],
                         newEntry[0]);
-                Optional<GPTModel> maybeSelectedModel = new UIGPTModelHelper().findModelForModelString(selectedModelStr);
+                Optional<GPTModel> maybeSelectedModel = uigptModelHelper.findModelForModelString(selectedModelStr);
                 GPTModel model = maybeSelectedModel.orElse(GPTModel.GPT_4);
                 System.out.println("Using model: " + model);
                 convoForm.setSelectedModel(model.toString());
@@ -188,6 +179,7 @@ public class App {
 
     TemplateProcessingHandler<Template> getTemplateProcessingHandler() {
         final BiFunction<Template, HttpServerExchange, String> waterTemplateRenderer = (template, exchange) -> {
+            System.out.println("Rendering template: " + template);
             return template.render();
         };
         final TemplateProcessingHandler<Template> templateHandler = new TemplateProcessingHandler<>(
@@ -228,12 +220,10 @@ public class App {
         );
 
         final HttpHandler otherHandler = new RoutingHandler()
-                .post("/trylogin", this::tryLoginHandler)
+                .post("/tryLogin", this::tryLoginHandler)
                 .post("/newEntry", this::processNewEntry)
                 .get("/hello", this::helloHandler)
                 .get("/goodbye", this::goodbyeHandler)
-                .get("/convo", this::supplyGptConvoForm)
-                .post("/convo", this::processGptConvoChunk)
                 .setFallbackHandler(App::notFoundHandler);
 
         final HttpHandler welcomeHandler = exch -> {

@@ -1,6 +1,6 @@
 ## Grambaal UI
 
-![Grambaal UI Example Image](grambaal-ui-example.png "app screenshot")
+![Grambaal UI Example Image](Grambaal-UI-shot2.png "app screenshot")
 
 ### NEW PROJECT -- IN PROGRESS
 

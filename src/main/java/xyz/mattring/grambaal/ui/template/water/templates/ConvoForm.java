@@ -2,9 +2,10 @@ package xyz.mattring.grambaal.ui.template.water.templates;
 
 import org.watertemplate.Template;
 import xyz.mattring.grambaal.oai.GPTModel;
+import xyz.mattring.grambaal.ui.App;
 
-import java.util.List;
 import java.util.Optional;
+import java.util.StringJoiner;
 
 public class ConvoForm extends Template {
 
@@ -14,12 +15,9 @@ public class ConvoForm extends Template {
     public ConvoForm(String sessionName, String optionalSelectedModel, String convoText, String newEntryText) {
         uiGPTModelHelper = new UIGPTModelHelper();
         setSessionName(sessionName);
-        if (!uiGPTModelHelper.isEmpty(optionalSelectedModel)) {
-            setSelectedModel(optionalSelectedModel);
-        }
+        setSelectedModel(optionalSelectedModel);
         setConvoText(convoText);
         setNewEntryText(newEntryText);
-        addCollection("availableModelOptions", getAvailableModelOptions());
     }
 
     @Override
@@ -47,6 +45,7 @@ public class ConvoForm extends Template {
     public void setSelectedModel(String selectedModel) {
         this.selectedModel = selectedModel;
         add("selectedModel", selectedModel);
+        addCollection("availableModelOptions", uiGPTModelHelper.getAvailableModelsAsOptions(selectedModel));
     }
 
     public String getConvoText() {
@@ -63,15 +62,21 @@ public class ConvoForm extends Template {
     }
 
     public void setNewEntryText(String newEntryText) {
-        this.newEntryText = newEntryText;
-        add("newEntryText", newEntryText);
-    }
-
-    private List<String> getAvailableModelOptions() {
-        return uiGPTModelHelper.getAvailableModelsAsOptions(selectedModel);
+        final String trimmedNewEntryText = App.trimIfPresent(newEntryText);
+        this.newEntryText = trimmedNewEntryText;
+        add("newEntryText", trimmedNewEntryText);
     }
 
     public Optional<GPTModel> findModelForModelString(String modelString) {
         return uiGPTModelHelper.findModelForModelString(modelString);
+    }
+
+    @Override
+    public String toString() {
+        return new StringJoiner(", ", ConvoForm.class.getSimpleName() + "[", "]")
+                .add("sessionName='" + sessionName + "'")
+                .add("selectedModel='" + selectedModel + "'")
+                .add("newEntryText='" + newEntryText + "'")
+                .toString();
     }
 }

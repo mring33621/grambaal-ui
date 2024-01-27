@@ -29,7 +29,7 @@ public class UIGPTModelHelper {
 
     public Optional<GPTModel> findModelForModelString(String modelString) {
         return Arrays.stream(GPTModel.values())
-                .filter(model -> modelString.contains(model.getModelName()))
+                .filter(model -> model.toString().equals(modelString))
                 .findFirst();
     }
 }
