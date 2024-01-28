@@ -10,14 +10,14 @@ import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 
 public class UsrMgt {
-    static final int FIVE_MINUTES = 5 * 60 * 1000;
+    static final int FOUR_MINUTES = 4 * 60 * 1000;
 
     static boolean isEmpty(String s) {
         return s == null || s.trim().isEmpty();
     }
 
     static boolean isExpired(long millistamp, long currentTimeMillis) {
-        return (millistamp + FIVE_MINUTES) < currentTimeMillis;
+        return (millistamp + FOUR_MINUTES) < currentTimeMillis;
     }
 
     static String generateLoginToken() {
@@ -28,7 +28,7 @@ public class UsrMgt {
         try {
             List<String> lines = Files.readAllLines(Paths.get(filePath));
             if (!lines.isEmpty()) {
-                return lines.get(lines.size() - 1).trim();
+                return lines.getLast().trim();
             }
         } catch (Exception e) {
             e.printStackTrace();
@@ -95,7 +95,7 @@ public class UsrMgt {
             return Optional.empty();
         }
         // check for token
-        if (validateToken(credsOrToken)) {
+        if (validateToken(credsOrToken, false)) {
             return Optional.of(credsOrToken);
         }
         // check password
@@ -109,12 +109,16 @@ public class UsrMgt {
         return Optional.empty();
     }
 
-    public boolean validateToken(final String token) {
+    public boolean validateToken(final String token, boolean renewIfValid) {
         if (isEmpty(token)) {
             return false;
         }
         final Long millistamp = logins.get(token);
-        return millistamp != null && !isExpired(millistamp, System.currentTimeMillis());
+        final boolean valid = millistamp != null && !isExpired(millistamp, System.currentTimeMillis());
+        if (valid && renewIfValid) {
+            logins.put(token, System.currentTimeMillis());
+        }
+        return valid;
     }
 
     public void logoutToken(final String token) {

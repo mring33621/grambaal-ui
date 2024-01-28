@@ -82,7 +82,7 @@ public class App {
         String helloResponse = "Hello World!";
         if (tokenCookie != null) {
             helloResponse += " Your token is: " + tokenCookie.getValue();
-            boolean isValid = usrMgt.validateToken(tokenCookie.getValue());
+            boolean isValid = usrMgt.validateToken(tokenCookie.getValue(), true);
             helloResponse += " It is " + (isValid ? "valid" : "invalid");
         } else {
             helloResponse += " You have no token.";
@@ -211,7 +211,7 @@ public class App {
 
         final Predicate<HttpServerExchange> isTokenValid = exch -> {
             final Cookie tokenCookie = exch.getRequestCookie(TOKEN_COOKIE_NAME);
-            return tokenCookie != null && usrMgt.validateToken(tokenCookie.getValue());
+            return tokenCookie != null && usrMgt.validateToken(tokenCookie.getValue(), true);
         };
         final HttpHandler guardedTemplateHandler = new DecisionHandler(
                 getTemplateProcessingHandler(),
