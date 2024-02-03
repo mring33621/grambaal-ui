@@ -33,6 +33,11 @@
             <version>1.8-SNAPSHOT</version>
         </dependency>
         <dependency>
+            <groupId>xyz.mattring</groupId>
+            <artifactId>UsrMgt</artifactId>
+            <version>1.0</version>
+        </dependency>
+        <dependency>
             <groupId>io.undertow</groupId>
             <artifactId>undertow-core</artifactId>
             <version>2.3.10.Final</version>

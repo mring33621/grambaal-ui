@@ -22,7 +22,7 @@ import xyz.mattring.grambaal.ui.template.water.infra.DynamicTemplateProvider;
 import xyz.mattring.grambaal.ui.template.water.templates.ConvoForm;
 import xyz.mattring.grambaal.ui.template.water.templates.HappyPath;
 import xyz.mattring.grambaal.ui.template.water.templates.UIGPTModelHelper;
-import xyz.mattring.grambaal.ui.users.UsrMgt;
+import xyz.mattring.usrmgt.UsrMgt;
 
 import java.io.File;
 import java.nio.file.Files;
