@@ -58,14 +58,14 @@ public class App {
 
     public App(String basePath) {
         this.basePath = basePath;
-        this.usrMgt = new UsrMgt(APP_NAME);
+        this.usrMgt = new UsrMgt(APP_NAME, null);
         this.formParserFactory = FormParserFactory.builder().withDefaultCharset("UTF-8").build();
         this.dynamicTemplateProvider = new DynamicTemplateProvider("grambaal-tkey");
         this.uigptModelHelper = new UIGPTModelHelper();
     }
 
     boolean isProvisioned() {
-        return usrMgt.isProvisioned();
+        return usrMgt.hasAtLeastOneUserProvisioned();
     }
 
     void signalTempRedirect(HttpServerExchange exchange, String targetLocation) {
@@ -226,9 +226,7 @@ public class App {
                 .get("/goodbye", this::goodbyeHandler)
                 .setFallbackHandler(App::notFoundHandler);
 
-        final HttpHandler welcomeHandler = exch -> {
-            signalTempRedirect(exch, "/s/pages/login.html");
-        };
+        final HttpHandler welcomeHandler = exch -> signalTempRedirect(exch, "/s/pages/login.html");
 
         final PathHandler compositeHandler = new PathHandler()
                 .addExactPath("/", welcomeHandler)
