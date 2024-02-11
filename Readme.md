@@ -5,7 +5,7 @@
 ### NEW PROJECT -- IN PROGRESS
 
 - This will be the web UI app for [Grambaal](https://github.com/mring33621/the-grambaal), my file-based LLM chat interaction program.
-- It supports multiple Open AI GPT models, as well as Google's Gemini-pro.
+- It supports multiple Open AI GPT models, Google's Gemini-pro and some others from DeepInfra.
 - I'm using [Undertow](https://undertow.io/) for its excellent server performance.
 - I gave up on hacking at Undertow's ResourceHandler for template rendering.
 - Instead, I've added a general use `TemplateProcessingHandler`.
