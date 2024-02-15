@@ -48,6 +48,15 @@
 <body>
 <form action="/apps/gb/o/newEntry" method="post">
     <div class="container">
+        <label for="selectedExistingSession">Existing Session</label>
+        <select id="selectedExistingSession" name="selectedExistingSession">
+            <option value="new">NEW</option>
+            ~for sessionOption in availableSessionOptions:
+            ~sessionOption~
+            :~
+        </select>
+    </div>
+    <div class="container">
         <label for="sessionName">Session Name</label>
         <input type="text" id="sessionName" name="sessionName" placeholder="Enter session name" value="~sessionName~">
     </div>
@@ -72,5 +81,13 @@
     </div>
     <input type="submit" value="Submit">
 </form>
+<script>
+    // when selectedExistingSession changes, update the sessionName input
+    document.getElementById('selectedExistingSession').addEventListener('change', function() {
+        var selectedExistingSession = this.value;
+        var sessionName = document.getElementById('sessionName');
+        sessionName.value = selectedExistingSession;
+    });
+</script>
 </body>
 </html>

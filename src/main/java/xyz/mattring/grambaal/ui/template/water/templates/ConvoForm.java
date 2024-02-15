@@ -1,9 +1,12 @@
 package xyz.mattring.grambaal.ui.template.water.templates;
 
 import org.watertemplate.Template;
+import xyz.mattring.grambaal.GPTSessionInteractor;
 import xyz.mattring.grambaal.oai.GPTModel;
 import xyz.mattring.grambaal.ui.App;
 
+import java.util.Collections;
+import java.util.List;
 import java.util.Optional;
 import java.util.StringJoiner;
 
@@ -29,9 +32,22 @@ public class ConvoForm extends Template {
         return sessionName;
     }
 
-    public void setSessionName(String sessionName) {
+    public void setSessionName(final String sessionName) {
         this.sessionName = sessionName;
         add("sessionName", sessionName);
+        // TODO: move the existing sessions stuff elsewhere?
+        List<String> availableSessionOptions = Collections.emptyList();
+        try {
+            List<String> availableSessions =
+                    GPTSessionInteractor.getExistingSessions(GPTSessionInteractor.SESSION_BASEDIR);
+            availableSessionOptions =
+                    availableSessions.stream()
+                            .map(s -> s.equals(sessionName) ? "<option selected>" + s + "</option>" : "<option>" + s + "</option>")
+                            .toList();
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        addCollection("availableSessionOptions", availableSessionOptions);
     }
 
     public String getSelectedModel() {
