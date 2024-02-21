@@ -134,10 +134,10 @@ public class App {
     void processNewEntry(HttpServerExchange exchange) {
         try (FormDataParser parser = formParserFactory.createParser(exchange)) {
             parser.parse(exch -> {
-                final FormData data = exchange.getAttachment(FormDataParser.FORM_DATA);
-                final String sessionName = data.getFirst("sessionName").getValue();
-                final String selectedModelStr = data.getFirst("selectedModel").getValue();
-                final String[] newEntry = {trimIfPresent(data.getFirst("newEntry").getValue())};
+                final FormData formData = exchange.getAttachment(FormDataParser.FORM_DATA);
+                final String sessionName = formData.getFirst("sessionName").getValue();
+                final String selectedModelStr = formData.getFirst("selectedModel").getValue();
+                final String[] newEntry = {trimIfPresent(formData.getFirst("newEntry").getValue())};
                 final String[] convoText = {""};
 
                 if (isPlaceHolder(newEntry[0]) && !isPlaceHolder(sessionName)) {
@@ -146,6 +146,13 @@ public class App {
                 }
 
                 if (!isPlaceHolder(newEntry[0]) && !isPlaceHolder(sessionName)) {
+
+                    final String editedConvoText = formData.contains("convoText")
+                            ? formData.getFirst("convoText").getValue() : null;
+                    if (editedConvoText != null) {
+                        GPTSessionInteractor.saveConvoTextForSession(sessionName, editedConvoText);
+                    }
+
                     final File tempFile = File.createTempFile("newUserPrompt", ".txt");
                     Files.writeString(tempFile.toPath(), newEntry[0] + "\n");
                     final String selectedModelName = uigptModelHelper.findModelForModelString(selectedModelStr)
