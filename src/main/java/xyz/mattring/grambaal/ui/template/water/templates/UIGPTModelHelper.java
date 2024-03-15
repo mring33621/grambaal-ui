@@ -15,8 +15,8 @@ public class UIGPTModelHelper {
 
     private final GPTModelHelper gptModelHelper;
 
-    public UIGPTModelHelper() {
-        gptModelHelper = new GPTModelHelper();
+    public UIGPTModelHelper(boolean excludeModelsWithoutApiKeys) {
+        gptModelHelper = new GPTModelHelper(excludeModelsWithoutApiKeys);
     }
 
     public List<String> getAvailableModelsAsOptions(String selectedModel) {

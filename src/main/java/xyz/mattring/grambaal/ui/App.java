@@ -61,7 +61,7 @@ public class App {
         this.usrMgt = new UsrMgt(APP_NAME, null);
         this.formParserFactory = FormParserFactory.builder().withDefaultCharset("UTF-8").build();
         this.dynamicTemplateProvider = new DynamicTemplateProvider("grambaal-tkey");
-        this.uigptModelHelper = new UIGPTModelHelper();
+        this.uigptModelHelper = new UIGPTModelHelper(true);
     }
 
     boolean isProvisioned() {

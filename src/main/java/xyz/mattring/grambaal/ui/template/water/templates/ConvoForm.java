@@ -16,7 +16,7 @@ public class ConvoForm extends Template {
     private final UIGPTModelHelper uiGPTModelHelper;
 
     public ConvoForm(String sessionName, String optionalSelectedModel, String convoText, String newEntryText) {
-        uiGPTModelHelper = new UIGPTModelHelper();
+        uiGPTModelHelper = new UIGPTModelHelper(true);
         setSessionName(sessionName);
         setSelectedModel(optionalSelectedModel);
         setConvoText(convoText);
