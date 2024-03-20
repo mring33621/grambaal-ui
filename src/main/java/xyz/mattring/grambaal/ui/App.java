@@ -26,6 +26,7 @@ import xyz.mattring.usrmgt.UsrMgt;
 
 import java.io.File;
 import java.nio.file.Files;
+import java.util.List;
 import java.util.Optional;
 import java.util.function.BiFunction;
 import java.util.function.Predicate;
@@ -102,6 +103,33 @@ public class App {
         } catch (Exception ex) {
             ex.printStackTrace();
         }
+    }
+
+    public void existingSessionsHandler(HttpServerExchange exchange) {
+        exchange.setStatusCode(200);
+        exchange.getResponseHeaders().put(Headers.CONTENT_TYPE, TEXT_HTML);
+        final String sessionName = "unk";
+        try {
+            List<String> availableSessions =
+                    GPTSessionInteractor.getExistingSessions(GPTSessionInteractor.SESSION_BASEDIR);
+            List<String> availableSessionAsHtmlSelectOptions =
+                    availableSessions.stream()
+                            .map(s -> s.equals(sessionName) ? "<option selected>" + s + "</option>" : "<option>" + s + "</option>")
+                            .toList();
+            final String sessions = String.join("\n", availableSessionAsHtmlSelectOptions);
+            exchange.getResponseSender().send(sessions);
+        } catch (Exception e) {
+            exchange.getResponseSender().send("Error getting existing sessions: " + e.getMessage());
+        }
+    }
+
+    public void modelsHandler(HttpServerExchange exchange) {
+        exchange.setStatusCode(200);
+        exchange.getResponseHeaders().put(Headers.CONTENT_TYPE, TEXT_HTML);
+        final String selectedModel = "unk";
+        List<String> availableModelOptions = uigptModelHelper.getAvailableModelsAsOptions(selectedModel);
+        final String models = String.join("\n", availableModelOptions);
+        exchange.getResponseSender().send(models);
     }
 
     void handleLoginForm(HttpServerExchange exchange) {
@@ -231,6 +259,8 @@ public class App {
                 .post("/newEntry", this::processNewEntry)
                 .get("/hello", this::helloHandler)
                 .get("/goodbye", this::goodbyeHandler)
+                .get("/existingSessions", this::existingSessionsHandler)
+                .get("/models", this::modelsHandler)
                 .setFallbackHandler(App::notFoundHandler);
 
         final HttpHandler welcomeHandler = exch -> signalTempRedirect(exch, "/s/pages/login.html");

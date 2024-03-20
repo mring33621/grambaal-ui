@@ -1,0 +1,32 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>LLM Convo Page</title>
+    <link rel="stylesheet" href="css/normalize.css">
+    <link rel="stylesheet" href="css/concrete.css">
+    <style>
+        .main-container {
+            display: flex;
+            flex-direction: column;
+            align-items: flex-start;
+            margin-left: 1em;
+        }
+    </style>
+    <script src="scripts/_hyperscript.min.js"></script>
+</head>
+<body>
+<div class="main-container">
+    <form action="refreshConvo" method="post">
+        <label for="existingSession">Existing Session</label>
+        <select _="init fetch /o/existingSessions then put result into me" id="existingSession" name="existingSession"></select>
+        <label for="newSession">Session Name</label><input type="text" id="newSession" name="newSession" placeholder="NewSessionPlaceholder">
+        <label for="model">Model</label>
+        <select _="init fetch /o/models then put result into me" id="model" name="model"></select>
+        <label for="convo">Convo</label><input type="text" id="convo" name="convo" placeholder="ConvoPlaceholder">
+        <label for="newPrompt">New Prompt</label><textarea id="newPrompt" name="newPrompt" placeholder="NewPromptPlaceholder"></textarea>
+        <input type="submit" id="submit" name="submit">
+    </form>
+</div>
+</body>
+</html>
