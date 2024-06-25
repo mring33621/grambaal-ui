@@ -49,6 +49,7 @@ public class App {
         exchange.getResponseSender().send("404: Page Not Found :)"); // happy face
     }
 
+    private final static long NINE_MINUTES = 1000 * 60 * 9;
 
     private final String basePath;
     private final UsrMgt usrMgt;
@@ -58,7 +59,7 @@ public class App {
 
     public App(String basePath) {
         this.basePath = basePath;
-        this.usrMgt = new UsrMgt(APP_NAME, null);
+        this.usrMgt = new UsrMgt(APP_NAME, null, NINE_MINUTES);
         this.formParserFactory = FormParserFactory.builder().withDefaultCharset("UTF-8").build();
         this.dynamicTemplateProvider = new DynamicTemplateProvider("grambaal-tkey");
         this.uigptModelHelper = new UIGPTModelHelper(true);
