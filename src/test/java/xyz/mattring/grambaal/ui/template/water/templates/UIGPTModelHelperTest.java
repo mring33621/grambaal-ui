@@ -19,7 +19,7 @@ class UIGPTModelHelperTest {
     void getAvailableModelsAsOptions() {
         final UIGPTModelHelper helper = new UIGPTModelHelper(false);
         assertFalse(helper.getAvailableModelsAsOptions(null).toString().contains("selected"));
-        assertTrue(helper.getAvailableModelsAsOptions(GPTModel.DINFRA_LLAMA_3_70B.toString()).toString().contains("<option selected>" + GPTModel.DINFRA_LLAMA_3_70B.toString() + "</option>"));
+        assertTrue(helper.getAvailableModelsAsOptions(GPTModel.DINFRA_LLAMA_3_1_70B.toString()).toString().contains("<option selected>" + GPTModel.DINFRA_LLAMA_3_1_70B.toString() + "</option>"));
         assertTrue(helper.getAvailableModelsAsOptions(GPTModel.GEM_1_5_PRO_LATEST.toString()).toString().contains("<option selected>" + GPTModel.GEM_1_5_PRO_LATEST.toString() + "</option>"));
     }
 
