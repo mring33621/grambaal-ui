@@ -158,7 +158,7 @@ public class App {
                     Files.writeString(tempFile.toPath(), newEntry[0] + "\n");
                     final String selectedModelName = uigptModelHelper.findModelForModelString(selectedModelStr)
                             .map(GPTModel::getModelName)
-                            .orElse(GPTModel.GPT_3_5_TURBO.getModelName());
+                            .orElse(GPTModel.GPT_o1_mini.getModelName());
                     GPTSessionInteractor gptSessionInteractor = new GPTSessionInteractor(sessionName, tempFile.getAbsolutePath(), selectedModelName);
                     gptSessionInteractor.run();
                     convoText[0] = GPTSessionInteractor.getConvoTextForSession(sessionName)
@@ -173,7 +173,7 @@ public class App {
                         convoText[0],
                         newEntry[0]);
                 Optional<GPTModel> maybeSelectedModel = uigptModelHelper.findModelForModelString(selectedModelStr);
-                GPTModel model = maybeSelectedModel.orElse(GPTModel.GPT_3_5_TURBO);
+                GPTModel model = maybeSelectedModel.orElse(GPTModel.GPT_o1_mini);
                 System.out.println("Using model: " + model);
                 convoForm.setSelectedModel(model.toString());
                 final String key = dynamicTemplateProvider.putTemplate(convoForm, exchange);
