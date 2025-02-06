@@ -19,15 +19,15 @@ class UIGPTModelHelperTest {
     void getAvailableModelsAsOptions() {
         final UIGPTModelHelper helper = new UIGPTModelHelper(false);
         assertFalse(helper.getAvailableModelsAsOptions(null).toString().contains("selected"));
-        assertTrue(helper.getAvailableModelsAsOptions(GPTModel.DINFRA_LLAMA_3_1_405B.toString()).toString().contains("<option selected>" + GPTModel.DINFRA_LLAMA_3_1_405B.toString() + "</option>"));
-        assertTrue(helper.getAvailableModelsAsOptions(GPTModel.GEM_1_5_PRO_LATEST.toString()).toString().contains("<option selected>" + GPTModel.GEM_1_5_PRO_LATEST.toString() + "</option>"));
+        assertTrue(helper.getAvailableModelsAsOptions(GPTModel.CLAUDE_3_5_HAIKU.toString()).toString().contains("<option selected>" + GPTModel.CLAUDE_3_5_HAIKU + "</option>"));
+        assertTrue(helper.getAvailableModelsAsOptions(GPTModel.GEM_2_0_FLASH_LATEST.toString()).toString().contains("<option selected>" + GPTModel.GEM_2_0_FLASH_LATEST + "</option>"));
     }
 
     @Test
     void findModelForModelString() {
         final UIGPTModelHelper helper = new UIGPTModelHelper(true);
-        assertTrue(helper.findModelForModelString(GPTModel.GPT_o1.toString()).isPresent());
-        assertTrue(helper.findModelForModelString(GPTModel.GEM_1_5_FLASH_LATEST.toString()).isPresent());
+        assertTrue(helper.findModelForModelString(GPTModel.GPT_o1_mini.toString()).isPresent());
+        assertTrue(helper.findModelForModelString(GPTModel.MISTRAL_CODESTRAL.toString()).isPresent());
         assertFalse(helper.findModelForModelString("not a model").isPresent());
     }
 }
