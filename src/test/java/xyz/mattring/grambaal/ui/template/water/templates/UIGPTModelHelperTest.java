@@ -26,7 +26,7 @@ class UIGPTModelHelperTest {
     @Test
     void findModelForModelString() {
         final UIGPTModelHelper helper = new UIGPTModelHelper(true);
-        assertTrue(helper.findModelForModelString(GPTModel.GPT_o1_mini.toString()).isPresent());
+        assertTrue(helper.findModelForModelString(GPTModel.GPT_o3_mini.toString()).isPresent());
         assertTrue(helper.findModelForModelString(GPTModel.MISTRAL_CODESTRAL.toString()).isPresent());
         assertFalse(helper.findModelForModelString("not a model").isPresent());
     }
